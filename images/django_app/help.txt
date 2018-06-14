@@ -1,0 +1,14 @@
+Użycie: run [KOMENDA ...]
+
+Operacje na serwerze w kontenerze.
+
+Argumenty:
+  KOMENDA          komenda do wykonania (domyślnie: help)
+
+Komendy:
+  help             ta pomoc
+  runserver        serwer deweloperski (najpierw migrate)
+  makemigrations   tworzenie migracji
+  migrate          migracja bazy
+  runtest          testy
+  cli              bash w kontenerze
