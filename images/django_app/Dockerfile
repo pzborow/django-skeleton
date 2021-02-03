@@ -29,7 +29,7 @@ ENV LC_CTYPE pl_PL.UTF-8
 
 
 #### Biblioteki systemowe ####
-RUN apt-get install -q -y postgresql-client-common postgresql-client-9.4
+RUN apt-get install -q -y postgresql-client-common postgresql-client
 
 
 #### Czyszczenie cache apt ####

@@ -17,6 +17,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
+    'rest_framework',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -49,15 +51,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'main.wsgi.application'
 
-# baza z docker-compose (usługa db)
+# baza ze zmiennych z docker-compose
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': 'secret',
-        'HOST': 'db',
-        'PORT': 5432,
+        'NAME': os.getenv("PG_DATABASE"),
+        'USER': os.getenv("PG_USER"),
+        'PASSWORD': os.getenv("PG_PASS"),
+        'HOST': os.getenv("PG_HOST"),
+        'PORT': os.getenv("PG_PORT", "5432"),
     }
 }
 
@@ -68,3 +70,12 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.OrderingFilter',
+        'rest_framework.filters.SearchFilter',
+    ],
+    'SEARCH_PARAM': 'query',
+}

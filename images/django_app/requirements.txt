@@ -1,4 +1,6 @@
-Django==2.0.6
+Django==2.2.18
+djangorestframework==3.12.2
+django-filter==2.4.0
 psycopg2-binary==2.7.4
 django-extensions==2.0.7
 ipython==6.4.0
