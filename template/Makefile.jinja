@@ -1,0 +1,68 @@
+.PHONY: help build up down logs clean test lint format be-shell be-install{% if use_frontend %} fe-shell fe-install fe-build{% endif %}
+
+help:
+	@echo "Komendy:"
+	@echo "  build            budowa obrazów"
+	@echo "  up               start w tle"
+	@echo "  down             stop"
+	@echo "  logs             logi wszystkich usług"
+	@echo "  clean            stop z usunięciem wolumenów i obrazów"
+	@echo ""
+	@echo "Backend (kontener musi działać, make up):"
+	@echo "  be-<komenda>     manage.py <komenda>, np. make be-migrate"
+	@echo "  be-shell         bash w kontenerze django"
+	@echo "  be-install PKG=  doinstalowanie paczki (do requirements.txt dopisać ręcznie)"
+	@echo "  test             pytest"
+	@echo "  lint             ruff check"
+	@echo "  format           ruff format i poprawki"
+{%- if use_frontend %}
+	@echo ""
+	@echo "Frontend (kontener musi działać, make up):"
+	@echo "  fe-shell         sh w kontenerze vue"
+	@echo "  fe-install PKG=  doinstalowanie paczki npm (zapisuje do package.json)"
+	@echo "  fe-build         produkcyjny build Nuxta"
+{%- endif %}
+
+build:
+	docker compose build
+
+up:
+	docker compose up -d
+
+down:
+	docker compose down
+
+logs:
+	docker compose logs -f
+
+clean:
+	docker compose down --volumes --rmi all
+
+test:
+	docker compose exec django pytest
+
+lint:
+	docker compose exec django ruff check .
+
+format:
+	docker compose exec django sh -c "ruff check --fix . && ruff format ."
+
+be-shell:
+	docker compose exec django bash
+
+be-install:
+	docker compose exec django pip install $(PKG)
+
+be-%:
+	docker compose exec django python manage.py $*
+{%- if use_frontend %}
+
+fe-shell:
+	docker compose exec vue sh
+
+fe-install:
+	docker compose exec vue npm install $(PKG)
+
+fe-build:
+	docker compose exec vue npm run build
+{%- endif %}

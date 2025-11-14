@@ -1,36 +1,29 @@
-# Szkielet projektu Django w dockerze
+# django-skeleton
 
-Szkielet do kopiowania na start nowego projektu. Obraz budowany z `images/django_app`, kod w `services/django_app`
-montowany do kontenera w `/srv` (zmiany widać od razu, bez przebudowy obrazu).
-
-
-## Start
-
-Potrzebny docker i docker-compose. Wolumen na bazę jest zewnętrzny (żeby `docker-compose down -v` go nie
-skasował), trzeba go raz założyć:
-
-    docker volume create data-postgresql
-    docker-compose up
-
-Startuje baza i serwer deweloperski na http://localhost:8000 (migracje lecą przy starcie).
+Szablon [Copier](https://copier.readthedocs.io/) do projektów Django (DRF, Postgres, docker compose).
 
 
-## Komendy w kontenerze
+## Użycie
 
-Obraz ma entrypoint `run` (`images/django_app/run.sh`). Bez argumentów wykonuje komendę z `DEFAULT_RUN_COMMAND`
-(w docker-compose to `runserver`), a z argumentami wykonuje je po kolei:
+Potrzebny [uv](https://docs.astral.sh/uv/) (albo copier zainstalowany inaczej, `pipx install copier`).
 
-    docker-compose run web help
-    docker-compose run web makemigrations migrate
-    docker-compose run web runtest
-    docker-compose run web cli
+    uvx copier copy gh:pzborow/django-skeleton moj_projekt
 
-Nowa komenda to nowa funkcja w `run.sh` (i linijka w `help.txt`).
+Copier pyta o nazwę projektu, nazwę techniczną, wersję Pythona i o frontend (Nuxt z SSR, domyślnie tak). Odpowiedzi
+zapisuje w `.copier-answers.yml` w wygenerowanym projekcie, dzięki temu potem da się w nim zrobić
 
-Do działającego kontenera wchodzi się skryptem `docker/bash`.
+    uvx copier update
+
+i dociągnąć zmiany z nowszej wersji szablonu (konflikty jak przy merge'u). Konkretna wersja szablonu:
+`--vcs-ref <commit>`.
+
+Dalej README wygenerowanego projektu.
 
 
-## Znane problemy
+## Co jest w wygenerowanym projekcie
 
-Przy pierwszym starcie aplikacja może nie połączyć się z bazą, bo baza jeszcze wstaje. Ponowne `docker-compose up`
-pomaga.
+- Django z DRF i Postgresem w docker compose, kod w `backend/` (projekt `config`), obraz w `docker/dev/django/`,
+- ustawienia z `docker/dev/django/.env` przez django-environ (baza z `DATABASE_URL`),
+- Makefile z komendami (`make help`),
+- pytest z pytest-django i ruff,
+- przy `use_frontend` Nuxt z SSR w `frontend/` i nginx przed całością (`/backend/` do Django, reszta do Nuxta).

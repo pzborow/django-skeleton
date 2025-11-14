@@ -1,0 +1,29 @@
+# {{ project_name }}
+
+## Start
+
+Potrzebny docker z compose.
+
+    make build
+    make up
+    make be-migrate
+
+API na http://localhost:8000.{% if use_frontend %} Frontend (Nuxt z SSR) na http://localhost:3000, wszystko razem przez nginx
+na http://localhost:8001 (API pod `/backend/`).{% endif %} Lista komend: `make help`.
+
+
+## Testy i lint
+
+    make test
+    make lint
+
+Testy idą w kontenerze, na bazie z docker-compose (pytest-django zakłada osobną bazę testową).
+{%- if use_frontend %}
+
+
+## Frontend
+
+Nuxt (Vue z SSR) w `frontend/`, serwer deweloperski z przeładowaniem, `node_modules` zostają w obrazie (po zmianie
+`package.json` `make build`). Przez nginx Django jest pod `/backend/` bez prefiksu, więc panel admina lepiej
+otwierać bezpośrednio na porcie 8000 (jego linki są absolutne).
+{%- endif %}

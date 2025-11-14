@@ -1,0 +1,22 @@
+_min_copier_version: "9"
+_subdirectory: template
+
+project_name:
+  type: str
+  help: Nazwa projektu (do README)
+  default: Projekt
+
+project_slug:
+  type: str
+  help: Nazwa techniczna (katalog, kontenery, baza)
+  default: "{{ project_name | lower | replace(' ', '_') }}"
+
+python_version:
+  type: str
+  help: Wersja Pythona w obrazie
+  default: "3.13"
+
+use_frontend:
+  type: bool
+  help: Frontend w Nuxt (Vue z SSR) i nginx przed całością
+  default: true

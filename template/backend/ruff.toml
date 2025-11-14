@@ -1,0 +1,17 @@
+line-length = 120
+exclude = ["migrations"]
+
+[lint]
+select = [
+    "E",    # pycodestyle
+    "W",    # pycodestyle, ostrzeżenia
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # nazewnictwo
+    "UP",   # pyupgrade
+    "B",    # bugbear
+    "C4",   # comprehensions
+    "SIM",  # simplify
+    "RUF",
+]
+ignore = ["E501"]  # długość linii pilnuje formatter
