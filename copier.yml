@@ -20,3 +20,8 @@ use_frontend:
   type: bool
   help: Frontend w Nuxt (Vue z SSR) i nginx przed całością
   default: true
+
+use_celery:
+  type: bool
+  help: Celery z Redisem (worker i beat)
+  default: false

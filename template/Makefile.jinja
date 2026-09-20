@@ -10,7 +10,7 @@ help:
 	@echo ""
 	@echo "Backend (kontener musi działać, make up):"
 	@echo "  be-<komenda>     manage.py <komenda>, np. make be-migrate"
-	@echo "  be-shell         bash w kontenerze django"
+	@echo "  be-shell         bash w kontenerze web"
 	@echo "  be-install PKG=  doinstalowanie paczki (do requirements.txt dopisać ręcznie)"
 	@echo "  test             pytest"
 	@echo "  lint             ruff check"
@@ -19,7 +19,7 @@ help:
 	@echo ""
 	@echo "Frontend (kontener musi działać, make up):"
 	@echo "  fe-shell         sh w kontenerze vue"
-	@echo "  fe-install PKG=  doinstalowanie paczki npm (zapisuje do package.json)"
+	@echo "  fe-install PKG=  nowa paczka npm (package.json), potem make build"
 	@echo "  fe-build         produkcyjny build Nuxta"
 {%- endif %}
 
@@ -39,22 +39,22 @@ clean:
 	docker compose down --volumes --rmi all
 
 test:
-	docker compose exec django pytest
+	docker compose exec web pytest
 
 lint:
-	docker compose exec django ruff check .
+	docker compose exec web ruff check .
 
 format:
-	docker compose exec django sh -c "ruff check --fix . && ruff format ."
+	docker compose exec web sh -c "ruff check --fix . && ruff format ."
 
 be-shell:
-	docker compose exec django bash
+	docker compose exec web bash
 
 be-install:
-	docker compose exec django pip install $(PKG)
+	docker compose exec web pip install $(PKG)
 
 be-%:
-	docker compose exec django python manage.py $*
+	docker compose exec web python manage.py $*
 {%- if use_frontend %}
 
 fe-shell:

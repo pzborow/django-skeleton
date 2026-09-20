@@ -6,10 +6,9 @@ Potrzebny docker z compose.
 
     make build
     make up
-    make be-migrate
 
-API na http://localhost:8000.{% if use_frontend %} Frontend (Nuxt z SSR) na http://localhost:3000, wszystko razem przez nginx
-na http://localhost:8001 (API pod `/backend/`).{% endif %} Lista komend: `make help`.
+API na http://localhost:8000 (migracje lecą przy starcie, web czeka, aż baza będzie gotowa). Lista komend:
+`make help`.
 
 
 ## Testy i lint
@@ -17,13 +16,22 @@ na http://localhost:8001 (API pod `/backend/`).{% endif %} Lista komend: `make h
     make test
     make lint
 
-Testy idą w kontenerze, na bazie z docker-compose (pytest-django zakłada osobną bazę testową).
+Testy idą w kontenerze, na bazie z compose (pytest-django zakłada osobną bazę testową).
+{%- if use_celery %}
+
+
+## Celery
+
+Worker i beat startują razem z resztą (`make up`), broker i cache to Redis. Zadania w `tasks.py` aplikacji
+(`@shared_task`), autodiscover sam je znajdzie. Logi workera: `docker compose logs -f worker`.
+{%- endif %}
 {%- if use_frontend %}
 
 
 ## Frontend
 
-Nuxt (Vue z SSR) w `frontend/`, serwer deweloperski z przeładowaniem, `node_modules` zostają w obrazie (po zmianie
-`package.json` `make build`). Przez nginx Django jest pod `/backend/` bez prefiksu, więc panel admina lepiej
-otwierać bezpośrednio na porcie 8000 (jego linki są absolutne).
+Nuxt (Vue z SSR) w `frontend/`, na http://localhost:3000, a całość przez nginx na http://localhost:8001 (API pod
+`/backend/`). Serwer deweloperski z przeładowaniem, `node_modules` zostają w obrazie (po zmianie `package.json`
+`make build`). Przez nginx Django jest pod `/backend/` bez prefiksu, więc panel admina lepiej otwierać bezpośrednio
+na porcie 8000 (jego linki są absolutne).
 {%- endif %}
