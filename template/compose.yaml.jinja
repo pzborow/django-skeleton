@@ -16,11 +16,17 @@ x-app: &app
     redis:
       condition: service_healthy
 {%- endif %}
+{%- if use_elasticsearch %}
+    elasticsearch:
+      condition: service_healthy
+{%- endif %}
 
 services:
   web:
     <<: *app
-    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    # entrypoint tylko tu, żeby worker i beat nie puszczały migracji równolegle
+    entrypoint: ["entrypoint.sh"]
+    command: python manage.py runserver 0.0.0.0:8000
     ports:
       - "8000:8000"
 {% if use_celery %}
@@ -57,7 +63,7 @@ services:
       - web
       - vue
 {% endif %}
-  # baza{% if use_celery %} i redis{% endif %} bez portów na hoście, żeby nie gryzły się z innymi projektami
+  # usługi pomocnicze bez portów na hoście, żeby nie gryzły się z innymi projektami
   db:
     image: postgres:16-alpine
     environment:
@@ -80,5 +86,25 @@ services:
       timeout: 3s
       retries: 20
 {% endif %}
+{%- if use_elasticsearch %}
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.3
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      # dev: ES nie blokuje indeksów, gdy na dysku zostaje mało miejsca
+      - cluster.routing.allocation.disk.threshold_enabled=false
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s' || exit 1"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+{% endif %}
 volumes:
   pgdata:
+{%- if use_elasticsearch %}
+  es-data:
+{%- endif %}

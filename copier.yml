@@ -25,3 +25,8 @@ use_celery:
   type: bool
   help: Celery z Redisem (worker i beat)
   default: false
+
+use_elasticsearch:
+  type: bool
+  help: Elasticsearch (jeden węzeł, bez zabezpieczeń, tylko dev)
+  default: false

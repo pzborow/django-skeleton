@@ -7,6 +7,9 @@ celery>=5.4,<6.0
 redis>=5.0,<6.0
 django-redis>=5.4
 {%- endif %}
+{%- if use_elasticsearch %}
+elasticsearch>=8.15,<9
+{%- endif %}
 pytest>=8.4
 pytest-django>=4.11
 ruff>=0.8

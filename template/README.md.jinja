@@ -7,8 +7,8 @@ Potrzebny docker z compose.
     make build
     make up
 
-API na http://localhost:8000 (migracje lecą przy starcie, web czeka, aż baza będzie gotowa). Lista komend:
-`make help`.
+API na http://localhost:8000, panel admina na http://localhost:8000/admin/ (admin/admin, z `.env`). Przy starcie
+web czeka na zdrową bazę, potem `entrypoint.sh` puszcza migracje i zakłada admina. Lista komend: `make help`.
 
 
 ## Testy i lint
@@ -24,6 +24,18 @@ Testy idą w kontenerze, na bazie z compose (pytest-django zakłada osobną baz�
 
 Worker i beat startują razem z resztą (`make up`), broker i cache to Redis. Zadania w `tasks.py` aplikacji
 (`@shared_task`), autodiscover sam je znajdzie. Logi workera: `docker compose logs -f worker`.
+{%- endif %}
+{%- if use_elasticsearch %}
+
+
+## Elasticsearch
+
+Jeden węzeł bez zabezpieczeń, tylko do developmentu. Adres w `settings.ES_URL`, klient:
+
+    from elasticsearch import Elasticsearch
+    es = Elasticsearch(settings.ES_URL)
+
+ES bierze sporo pamięci (sterta 512 MB plus narzut), przy pierwszym starcie chwilę wstaje.
 {%- endif %}
 {%- if use_frontend %}
 
