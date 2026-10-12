@@ -1,7 +1,10 @@
-.PHONY: help build up down logs clean test lint format be-shell be-install{% if use_frontend %} fe-shell fe-install fe-build{% endif %}
+DC = docker compose
+
+.PHONY: help env build up down logs clean test lint format be-shell be-install{% if use_frontend %} fe-shell fe-install fe-build{% endif %}
 
 help:
 	@echo "Komendy:"
+	@echo "  env              .env z .env.example (jeśli jeszcze nie ma)"
 	@echo "  build            budowa obrazów"
 	@echo "  up               start w tle"
 	@echo "  down             stop"
@@ -23,46 +26,49 @@ help:
 	@echo "  fe-build         produkcyjny build Nuxta"
 {%- endif %}
 
-build:
-	docker compose build
+env:
+	test -f .env || cp .env.example .env
 
-up:
-	docker compose up -d
+build: env
+	$(DC) build
+
+up: env
+	$(DC) up -d
 
 down:
-	docker compose down
+	$(DC) down
 
 logs:
-	docker compose logs -f
+	$(DC) logs -f
 
 clean:
-	docker compose down --volumes --rmi all
+	$(DC) down --volumes --rmi all
 
 test:
-	docker compose exec web pytest
+	$(DC) exec web pytest
 
 lint:
-	docker compose exec web ruff check .
+	$(DC) exec web ruff check .
 
 format:
-	docker compose exec web sh -c "ruff check --fix . && ruff format ."
+	$(DC) exec web sh -c "ruff check --fix . && ruff format ."
 
 be-shell:
-	docker compose exec web bash
+	$(DC) exec web bash
 
 be-install:
-	docker compose exec web pip install $(PKG)
+	$(DC) exec web pip install $(PKG)
 
 be-%:
-	docker compose exec web python manage.py $*
+	$(DC) exec web python manage.py $*
 {%- if use_frontend %}
 
 fe-shell:
-	docker compose exec vue sh
+	$(DC) exec vue sh
 
 fe-install:
-	docker compose exec vue npm install $(PKG)
+	$(DC) exec vue npm install $(PKG)
 
 fe-build:
-	docker compose exec vue npm run build
+	$(DC) exec vue npm run build
 {%- endif %}

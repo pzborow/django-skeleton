@@ -7,8 +7,9 @@ Potrzebny docker z compose.
     make build
     make up
 
-API na http://localhost:8000, panel admina na http://localhost:8000/admin/ (admin/admin, z `.env`). Przy starcie
-web czeka na zdrową bazę, potem `entrypoint.sh` puszcza migracje i zakłada admina. Lista komend: `make help`.
+Za pierwszym razem `make` robi `.env` z `.env.example` (lokalne ustawienia, nie idzie do repo, port zmienia się przez
+`WEB_PORT`). API na http://localhost:8000, panel admina na http://localhost:8000/admin/ (admin/admin). Przy starcie web
+czeka na zdrową bazę, potem `entrypoint.sh` puszcza migracje i zakłada admina. Lista komend: `make help`.
 
 
 ## Testy i lint
@@ -43,7 +44,7 @@ ES bierze sporo pamięci (sterta 512 MB plus narzut), przy pierwszym starcie chw
 ## Frontend
 
 Nuxt (Vue z SSR) w `frontend/`, na http://localhost:3000, a całość przez nginx na http://localhost:8001 (API pod
-`/backend/`). Serwer deweloperski z przeładowaniem, `node_modules` zostają w obrazie (po zmianie `package.json`
-`make build`). Przez nginx Django jest pod `/backend/` bez prefiksu, więc panel admina lepiej otwierać bezpośrednio
-na porcie 8000 (jego linki są absolutne).
+`/backend/`, porty w `.env`: `FRONT_PORT`, `NGINX_PORT`). Serwer deweloperski z przeładowaniem, `node_modules` zostają w
+obrazie (po zmianie `package.json` `make build`). Przez nginx Django jest pod `/backend/` bez prefiksu, więc panel
+admina lepiej otwierać bezpośrednio na porcie 8000 (jego linki są absolutne).
 {%- endif %}
