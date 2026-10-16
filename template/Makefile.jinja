@@ -14,7 +14,7 @@ help:
 	@echo "Backend (kontener musi działać, make up):"
 	@echo "  be-<komenda>     manage.py <komenda>, np. make be-migrate"
 	@echo "  be-shell         bash w kontenerze web"
-	@echo "  be-install PKG=  doinstalowanie paczki (do requirements.txt dopisać ręcznie)"
+	@echo "  be-install PKG=  doinstalowanie paczki na próbę (na stałe: pyproject.toml i make build)"
 	@echo "  test             pytest"
 	@echo "  lint             ruff check"
 	@echo "  format           ruff format i poprawki"
@@ -57,7 +57,7 @@ be-shell:
 	$(DC) exec web bash
 
 be-install:
-	$(DC) exec web pip install $(PKG)
+	$(DC) exec web uv pip install --system $(PKG)
 
 be-%:
 	$(DC) exec web python manage.py $*

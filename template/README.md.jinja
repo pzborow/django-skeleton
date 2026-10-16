@@ -17,7 +17,13 @@ czeka na zdrową bazę, potem `entrypoint.sh` puszcza migracje i zakłada admina
     make test
     make lint
 
-Testy idą w kontenerze, na bazie z compose (pytest-django zakłada osobną bazę testową).
+Testy idą w kontenerze, na bazie z compose (pytest-django zakłada osobną bazę testową). Konfiguracja pytest
+i ruff w `backend/pyproject.toml`.
+
+
+## Zależności
+
+W `backend/pyproject.toml`, obraz instaluje je przez uv. Po zmianie `make build`.
 {%- if use_celery %}
 
 

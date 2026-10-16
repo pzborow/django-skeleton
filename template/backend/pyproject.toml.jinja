@@ -1,0 +1,33 @@
+[project]
+name = "{{ project_slug }}"
+version = "0.1.0"
+requires-python = ">={{ python_version }}"
+dependencies = [
+    "django>=6.1",
+    "djangorestframework>=3.16",
+    "django-environ>=0.11",
+    "psycopg[binary]>=3.2",
+{%- if use_celery %}
+    "celery[redis]>=5.5",
+    "django-redis>=5.4",
+{%- endif %}
+{%- if use_elasticsearch %}
+    "elasticsearch>=8.15,<9",
+{%- endif %}
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-django>=4.9", "ruff>=0.8"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+testpaths = ["tests"]
+addopts = "--reuse-db"
+
+[tool.ruff]
+line-length = 120
+exclude = ["migrations"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
+ignore = ["E501"]  # długość linii pilnuje formatter

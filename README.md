@@ -25,11 +25,12 @@ Dalej README wygenerowanego projektu.
 
 - Django z DRF i Postgresem w `compose.yaml` (wspólna część usług w `x-app`), kod w `backend/` (projekt `config`),
   obraz w `docker/dev/django/`,
+- zależności w `backend/pyproject.toml` (narzędzia w extra `dev`), obraz instaluje je przez uv,
 - web czeka na zdrową bazę, potem `entrypoint.sh` puszcza migracje i zakłada konto admina (admin/admin),
 - ustawienia w `.env`, który `make env` robi z `.env.example` (`.env` nie idzie do repo), dane bazy tylko tam,
 - porty tylko na 127.0.0.1, zmieniane w `.env` (`WEB_PORT`, przy frontendzie też `FRONT_PORT` i `NGINX_PORT`),
 - Makefile z komendami (`make help`),
-- pytest z pytest-django i ruff,
+- pytest z pytest-django i ruff (konfiguracja w `pyproject.toml`),
 - przy `use_frontend` Nuxt z SSR w `frontend/` i nginx przed całością (`/backend/` do Django, reszta do Nuxta),
 - przy `use_celery` worker i beat, Redis jako broker i cache (`config/celery.py`),
 - przy `use_elasticsearch` Elasticsearch, jeden węzeł bez zabezpieczeń (tylko do developmentu).
