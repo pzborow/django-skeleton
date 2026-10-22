@@ -1,12 +1,13 @@
 import os
 import time
+from collections.abc import Iterator
 
 import httpx
 import pytest
 
 
 @pytest.fixture(scope="session")
-def http():
+def http() -> Iterator[httpx.Client]:
     """Klient do działającego serwera (adres z E2E_BASE_URL), czeka, aż serwer zacznie odpowiadać."""
     with httpx.Client(base_url=os.environ["E2E_BASE_URL"], follow_redirects=False) as client:
         deadline = time.monotonic() + 60

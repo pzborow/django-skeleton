@@ -1,7 +1,8 @@
 # django-skeleton
 
 Szablon [Copier](https://copier.readthedocs.io/) do projektów Django: DRF, Postgres, docker compose, opcjonalnie
-Celery z Redisem i Elasticsearch, frontend w Nuxt z SSR. Testy jednostkowe i e2e, ruff, CI na GitHub Actions.
+Celery z Redisem i Elasticsearch, frontend w Nuxt z SSR. Testy jednostkowe i e2e, ruff i mypy (strict),
+CI na GitHub Actions.
 
 
 ## Co trzeba mieć
@@ -65,4 +66,5 @@ Konkretna wersja szablonu: `--vcs-ref <commit>`.
 ## Sprawdzanie szablonu
 
 `.github/workflows/test.yml` (CI tego repo) generuje projekt we wszystkich kombinacjach opcji i sprawdza
-`docker compose config` i ruff, a skrajne kombinacje (nic i wszystko) buduje i puszcza `make test` i `make e2e`.
+`docker compose config` i ruff, a skrajne kombinacje (nic i wszystko) buduje i puszcza `make lint`
+(z mypy), `make test` i `make e2e`.

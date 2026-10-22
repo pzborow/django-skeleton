@@ -23,8 +23,9 @@ nadaje).
     make lint
 
 Wszystko idzie w kontenerze, stos nie musi wcześniej działać (`make test` bierze jednorazowy kontener z bazą,
-`make lint` bez bazy), `make e2e` podnosi stos i puszcza testy w działającym web. pytest-django zakłada osobną bazę
-testową. Konfiguracja pytest i ruff w `backend/pyproject.toml`, CI w `.github/workflows/ci.yml` (te same komendy make).
+`make lint` bez bazy, ruff i mypy), `make e2e` podnosi stos i puszcza testy w działającym web. pytest-django zakłada
+osobną bazę testową. Konfiguracja pytest, ruff i mypy w `backend/pyproject.toml`, CI w `.github/workflows/ci.yml` (te
+same komendy make).
 
 
 ## Zależności

@@ -4,7 +4,7 @@ RUN = $(DC) run --rm web
 # jednorazowy kontener bez bazy i bez entrypointu (lint, lock, uv add)
 TOOL = $(DC) run --rm --no-deps --entrypoint "" web
 
-.PHONY: help env build up down logs clean test e2e lint format lock be-shell be-install{% if use_frontend %} fe-shell fe-install fe-build{% endif %}
+.PHONY: help env build up down logs clean test e2e lint format lock be-bash be-install{% if use_frontend %} fe-shell fe-install fe-build{% endif %}
 
 help:
 	@echo "Komendy:"
@@ -21,7 +21,7 @@ help:
 	@echo "  format           ruff format i poprawki"
 	@echo ""
 	@echo "  be-<komenda>     manage.py <komenda>, np. make be-makemigrations"
-	@echo "  be-shell         bash w kontenerze"
+	@echo "  be-bash          bash w kontenerze"
 	@echo "  be-install PKG=  nowa zależność (uv add), potem make build"
 	@echo "  lock             odświeżenie uv.lock"
 {%- if use_frontend %}
@@ -68,7 +68,7 @@ e2e: up
 	$(DC) exec -T web env E2E_BASE_URL=http://localhost:8000 pytest tests/e2e
 
 lint: env
-	$(TOOL) sh -c "ruff check . && ruff format --check ."
+	$(TOOL) sh -c "ruff check . && ruff format --check . && mypy ."
 
 format: env
 	$(TOOL) sh -c "ruff check --fix . && ruff format ."
@@ -76,7 +76,7 @@ format: env
 lock: env
 	$(TOOL) uv lock
 
-be-shell: env
+be-bash: env
 	$(RUN) bash
 
 be-install: env

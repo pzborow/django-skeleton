@@ -17,7 +17,16 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "pytest-django>=4.9", "httpx>=0.28", "ruff>=0.8"]
+dev = [
+    "pytest>=8",
+    "pytest-django>=4.9",
+    "httpx>=0.28",
+    "ruff>=0.8",
+    "ipython>=9",
+    "mypy>=2.3",
+    "django-stubs[compatible-mypy]>=6.1",
+    "djangorestframework-stubs[compatible-mypy]>=3.16",
+]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings"
@@ -29,5 +38,18 @@ line-length = 120
 exclude = ["migrations"]
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
+select = ["E", "W", "F", "I", "N", "UP", "B", "C4", "SIM", "RUF", "ANN"]
 ignore = ["E501"]  # długość linii pilnuje formatter
+
+[tool.mypy]
+strict = true
+plugins = ["mypy_django_plugin.main"]
+exclude = ["migrations/"]
+
+[tool.django-stubs]
+django_settings_module = "config.settings"
+
+# bez typów w paczce i bez stubów
+[[tool.mypy.overrides]]
+module = ["environ"{% if use_celery %}, "celery"{% endif %}]
+ignore_missing_imports = true

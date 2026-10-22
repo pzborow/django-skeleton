@@ -3,7 +3,7 @@ import time
 import httpx
 
 
-def test_strona_z_ssr_przez_nginx():
+def test_strona_z_ssr_przez_nginx() -> None:
     # pierwsze wejście kompiluje stronę w nuxt dev, stąd czekanie
     deadline = time.monotonic() + 120
     while True:
