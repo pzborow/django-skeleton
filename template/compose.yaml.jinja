@@ -1,10 +1,8 @@
 name: {{ project_slug }}
 
-# wspólne dla aplikacji{% if use_celery %}, workera i beata{% endif %}
+# wspólne dla aplikacji{% if use_celery %}, workera i beata{% endif %} (jeden obraz, buduje go web)
 x-app: &app
-  build:
-    context: .
-    dockerfile: docker/dev/django/Dockerfile
+  image: {{ project_slug }}-django
   env_file: .env
   volumes:
     - ./backend:/app
@@ -23,11 +21,16 @@ x-app: &app
 services:
   web:
     <<: *app
+    build:
+      context: .
+      dockerfile: docker/dev/django/Dockerfile
+      args:
+        UID: ${UID:?brak UID w .env, make env}
     # entrypoint tylko tu, żeby worker i beat nie puszczały migracji równolegle
     entrypoint: ["entrypoint.sh"]
     command: python manage.py runserver 0.0.0.0:8000
     ports:
-      - "127.0.0.1:${WEB_PORT:-8000}:8000"
+      - "127.0.0.1:${WEB_PORT:?brak WEB_PORT w .env}:8000"
 {% if use_celery %}
   worker:
     <<: *app
@@ -43,13 +46,15 @@ services:
     build:
       context: .
       dockerfile: docker/dev/vue/Dockerfile
+      args:
+        UID: ${UID:?brak UID w .env, make env}
     volumes:
       - ./frontend:/app
       - /app/node_modules  # node_modules z obrazu, nie z hosta
     environment:
       - NODE_ENV=development
     ports:
-      - "127.0.0.1:${FRONT_PORT:-3000}:3000"
+      - "127.0.0.1:${FRONT_PORT:?brak FRONT_PORT w .env}:3000"
 
   # wspólne wejście: /backend/ do Django, reszta do Nuxta
   nginx:
@@ -57,7 +62,7 @@ services:
       context: .
       dockerfile: docker/dev/nginx/Dockerfile
     ports:
-      - "127.0.0.1:${NGINX_PORT:-8001}:80"
+      - "127.0.0.1:${NGINX_PORT:?brak NGINX_PORT w .env}:80"
     depends_on:
       - web
       - vue
@@ -65,7 +70,11 @@ services:
   # usługi pomocnicze bez portów na hoście, żeby nie gryzły się z innymi projektami
   db:
     image: postgres:17-alpine
-    env_file: .env
+    # tylko dane bazy z .env, bez reszty (SECRET_KEY, hasło admina)
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

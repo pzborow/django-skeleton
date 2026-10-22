@@ -1,6 +1,11 @@
 _min_copier_version: "9"
 _subdirectory: template
 
+# lock zależności robi uv na hoście, bo obraz bez locka się nie zbuduje (copier copy/update potrzebuje --trust);
+# później lock odświeża make lock uvem z obrazu
+_tasks:
+  - "cd backend && uv lock"
+
 project_name:
   type: str
   help: Nazwa projektu (do README)
@@ -8,8 +13,14 @@ project_name:
 
 project_slug:
   type: str
-  help: Nazwa techniczna (katalog, kontenery, baza)
-  default: "{{ project_name | lower | replace(' ', '_') }}"
+  help: Nazwa techniczna (compose, baza, paczka), małe litery, cyfry i _
+  default: >-
+    {{ project_name | lower | replace('ą', 'a') | replace('ć', 'c') | replace('ę', 'e') | replace('ł', 'l')
+    | replace('ń', 'n') | replace('ó', 'o') | replace('ś', 's') | replace('ź', 'z') | replace('ż', 'z')
+    | replace(' ', '_') | replace('-', '_') }}
+  validator: >-
+    {% if not (project_slug | regex_search('^[a-z][a-z0-9_]*$')) %}tylko małe litery, cyfry i _, na początku
+    litera{% endif %}
 
 python_version:
   type: str

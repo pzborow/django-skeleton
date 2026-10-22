@@ -1,0 +1,20 @@
+import time
+
+import httpx
+
+
+def test_strona_z_ssr_przez_nginx():
+    # pierwsze wejście kompiluje stronę w nuxt dev, stąd czekanie
+    deadline = time.monotonic() + 120
+    while True:
+        try:
+            response = httpx.get("http://nginx/", timeout=30)
+            if response.status_code == 200 or time.monotonic() > deadline:
+                break
+        except httpx.TransportError:
+            if time.monotonic() > deadline:
+                raise
+        time.sleep(2)
+    assert response.status_code == 200
+    # treść jest już w HTML z serwera (SSR), nie dopiero po JS
+    assert {{ project_name | e | tojson }} in response.text

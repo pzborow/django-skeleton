@@ -1,0 +1,54 @@
+name: Szablon
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  # wszystkie kombinacje opcji: render, compose config, ruff
+  render:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        frontend: [false, true]
+        celery: [false, true]
+        es: [false, true]
+    env:
+      OUT: /tmp/out
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+      - run: >-
+          uvx copier copy --trust --vcs-ref HEAD --defaults
+          -d use_frontend=${{ matrix.frontend }} -d use_celery=${{ matrix.celery }}
+          -d use_elasticsearch=${{ matrix.es }} . "$OUT"
+      - working-directory: ${{ env.OUT }}
+        run: |
+          cp .env.example .env
+          docker compose config -q
+          uvx ruff check backend
+          uvx ruff format --check backend
+
+  # skrajne kombinacje naprawdę: build, lint, testy, e2e
+  docker:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        options:
+          - "-d use_frontend=false"
+          - "-d use_frontend=true -d use_celery=true -d use_elasticsearch=true"
+    env:
+      OUT: /tmp/out
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+      - run: uvx copier copy --trust --vcs-ref HEAD --defaults ${{ matrix.options }} . "$OUT"
+      - working-directory: ${{ env.OUT }}
+        run: make build && make lint && make test && make e2e
+      - if: always()
+        working-directory: ${{ env.OUT }}
+        run: make down

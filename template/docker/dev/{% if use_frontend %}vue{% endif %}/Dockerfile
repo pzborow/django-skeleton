@@ -1,5 +1,5 @@
 # Node na Debianie, nie Alpine (natywne moduły npm)
-FROM node:20-slim
+FROM node:24-slim
 
 RUN apt-get update && apt-get install -y \
     python3 \
@@ -7,12 +7,18 @@ RUN apt-get update && apt-get install -y \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
+# użytkownik node z obrazu dostaje UID hosta, inaczej package.json po npm install należy do roota
+ARG UID
+RUN usermod -u ${UID} node
+
 WORKDIR /app
+RUN chown node:node /app
+USER node
 
-COPY frontend/package*.json ./
-RUN npm install
+COPY --chown=node:node frontend/package*.json ./
+RUN npm ci
 
-COPY frontend/ .
+COPY --chown=node:node frontend/ .
 
 EXPOSE 3000
 

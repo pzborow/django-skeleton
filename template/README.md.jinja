@@ -7,23 +7,35 @@ Potrzebny docker z compose.
     make build
     make up
 
-Za pierwszym razem `make` robi `.env` z `.env.example` (lokalne ustawienia, nie idzie do repo, port zmienia się przez
-`WEB_PORT`). API na http://localhost:8000, panel admina na http://localhost:8000/admin/ (admin/admin). Przy starcie web
-czeka na zdrową bazę, potem `entrypoint.sh` puszcza migracje i zakłada admina. Lista komend: `make help`.
+Za pierwszym razem `make` robi `.env` z `.env.example` (lokalne ustawienia z UID hosta, nie idzie do repo, port
+zmienia się przez `WEB_PORT`). Django na http://localhost:8000 (DRF zainstalowany, endpointy do dopisania
+w aplikacjach), panel admina na http://localhost:8000/admin/ (admin/admin). Przy starcie web czeka na zdrową bazę,
+potem `entrypoint.sh` puszcza migracje i zakłada admina. Lista komend: `make help`.
+
+`make` uruchamiany jako zwykły użytkownik, nie przez sudo (kontenery dostają UID hosta, root się do tego nie
+nadaje).
 
 
 ## Testy i lint
 
-    make test
+    make test     # jednostkowe, tests/unit
+    make e2e      # przez HTTP na działającym stosie, tests/e2e
     make lint
 
-Testy idą w kontenerze, na bazie z compose (pytest-django zakłada osobną bazę testową). Konfiguracja pytest
-i ruff w `backend/pyproject.toml`.
+Wszystko idzie w kontenerze, stos nie musi wcześniej działać (`make test` bierze jednorazowy kontener z bazą,
+`make lint` bez bazy), `make e2e` podnosi stos i puszcza testy w działającym web. pytest-django zakłada osobną bazę
+testową. Konfiguracja pytest i ruff w `backend/pyproject.toml`, CI w `.github/workflows/ci.yml` (te same komendy make).
 
 
 ## Zależności
 
-W `backend/pyproject.toml`, obraz instaluje je przez uv. Po zmianie `make build`.
+W `backend/pyproject.toml`, wersje przypięte w `backend/uv.lock` (do repo). Nowa paczka:
+
+    make be-install PKG=nazwa
+    make build
+
+`be-install` robi `uv add` w kontenerze, zmienia `pyproject.toml` i `uv.lock` na dysku (backend jest
+zamontowany). Samo odświeżenie locka: `make lock`.
 {%- if use_celery %}
 
 
@@ -50,7 +62,8 @@ ES bierze sporo pamięci (sterta 512 MB plus narzut), przy pierwszym starcie chw
 ## Frontend
 
 Nuxt (Vue z SSR) w `frontend/`, na http://localhost:3000, a całość przez nginx na http://localhost:8001 (API pod
-`/backend/`, porty w `.env`: `FRONT_PORT`, `NGINX_PORT`). Serwer deweloperski z przeładowaniem, `node_modules` zostają w
-obrazie (po zmianie `package.json` `make build`). Przez nginx Django jest pod `/backend/` bez prefiksu, więc panel
-admina lepiej otwierać bezpośrednio na porcie 8000 (jego linki są absolutne).
+`/backend/`, porty w `.env`: `FRONT_PORT`, `NGINX_PORT`). Serwer deweloperski z przeładowaniem, `node_modules` z obrazu
+(wersje z `package-lock.json`). Nowa paczka: `make fe-install PKG=nazwa`, potem `make build` i `make up`. Przez nginx
+Django jest pod `/backend/` bez prefiksu, więc panel admina lepiej otwierać bezpośrednio na porcie 8000 (jego linki są
+absolutne).
 {%- endif %}

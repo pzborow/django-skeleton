@@ -1,74 +1,97 @@
 DC = docker compose
+# jednorazowy kontener web z bazą (entrypoint robi migracje)
+RUN = $(DC) run --rm web
+# jednorazowy kontener bez bazy i bez entrypointu (lint, lock, uv add)
+TOOL = $(DC) run --rm --no-deps --entrypoint "" web
 
-.PHONY: help env build up down logs clean test lint format be-shell be-install{% if use_frontend %} fe-shell fe-install fe-build{% endif %}
+.PHONY: help env build up down logs clean test e2e lint format lock be-shell be-install{% if use_frontend %} fe-shell fe-install fe-build{% endif %}
 
 help:
 	@echo "Komendy:"
-	@echo "  env              .env z .env.example (jeśli jeszcze nie ma)"
+	@echo "  env              .env z .env.example z UID hosta, sprawdzenie brakujących kluczy"
 	@echo "  build            budowa obrazów"
 	@echo "  up               start w tle"
 	@echo "  down             stop"
 	@echo "  logs             logi wszystkich usług"
-	@echo "  clean            stop z usunięciem wolumenów i obrazów"
+	@echo "  clean            stop z usunięciem wolumenów i zbudowanych obrazów"
 	@echo ""
-	@echo "Backend (kontener musi działać, make up):"
-	@echo "  be-<komenda>     manage.py <komenda>, np. make be-migrate"
-	@echo "  be-shell         bash w kontenerze web"
-	@echo "  be-install PKG=  doinstalowanie paczki na próbę (na stałe: pyproject.toml i make build)"
-	@echo "  test             pytest"
-	@echo "  lint             ruff check"
+	@echo "  test             testy jednostkowe"
+	@echo "  e2e              testy przez HTTP (podnosi stos)"
+	@echo "  lint             ruff check i format --check"
 	@echo "  format           ruff format i poprawki"
+	@echo ""
+	@echo "  be-<komenda>     manage.py <komenda>, np. make be-makemigrations"
+	@echo "  be-shell         bash w kontenerze"
+	@echo "  be-install PKG=  nowa zależność (uv add), potem make build"
+	@echo "  lock             odświeżenie uv.lock"
 {%- if use_frontend %}
 	@echo ""
-	@echo "Frontend (kontener musi działać, make up):"
+	@echo "Frontend:"
 	@echo "  fe-shell         sh w kontenerze vue"
-	@echo "  fe-install PKG=  nowa paczka npm (package.json), potem make build"
+	@echo "  fe-install PKG=  nowa paczka npm (package.json i lock), potem make build"
 	@echo "  fe-build         produkcyjny build Nuxta"
 {%- endif %}
 
+# .env z UID hosta (pliki pisane z kontenera mają należeć do nas, root się do tego nie nadaje)
+# i sprawdzenie, czy nie brakuje kluczy dodanych w .env.example (np. po copier update)
 env:
-	test -f .env || cp .env.example .env
+	@test "$$(id -u)" != 0 || { echo "make jako root: kontenery dostałyby UID 0, uruchom jako zwykły użytkownik"; exit 1; }
+{%- if use_frontend %}
+	@mkdir -p frontend/node_modules  # punkt montowania wolumenu, inaczej docker zakłada go jako root
+{%- endif %}
+	@test -f .env || sed "s/^UID=.*/UID=$$(id -u)/" .env.example > .env
+	@missing=$$(for k in $$(sed -n 's/^\([A-Z_][A-Z0-9_]*\)=.*/\1/p' .env.example); do \
+		grep -q "^$$k=" .env || echo $$k; done); \
+	test -z "$$missing" || { echo "W .env brakuje kluczy z .env.example: $$missing"; exit 1; }
 
 build: env
 	$(DC) build
 
+# --renew-anon-volumes: świeże node_modules z obrazu po make build
 up: env
-	$(DC) up -d
+	$(DC) up -d --renew-anon-volumes
 
-down:
+down: env
 	$(DC) down
 
-logs:
+logs: env
 	$(DC) logs -f
 
-clean:
-	$(DC) down --volumes --rmi all
+clean: env
+	$(DC) down --volumes --rmi local
 
-test:
-	$(DC) exec web pytest
+test: env
+	$(RUN) pytest
 
-lint:
-	$(DC) exec web ruff check .
+# testy w działającym web, który sam robi migracje (osobny kontener migrowałby równolegle)
+e2e: up
+	$(DC) exec -T web env E2E_BASE_URL=http://localhost:8000 pytest tests/e2e
 
-format:
-	$(DC) exec web sh -c "ruff check --fix . && ruff format ."
+lint: env
+	$(TOOL) sh -c "ruff check . && ruff format --check ."
 
-be-shell:
-	$(DC) exec web bash
+format: env
+	$(TOOL) sh -c "ruff check --fix . && ruff format ."
 
-be-install:
-	$(DC) exec web uv pip install --system $(PKG)
+lock: env
+	$(TOOL) uv lock
 
-be-%:
-	$(DC) exec web python manage.py $*
+be-shell: env
+	$(RUN) bash
+
+be-install: env
+	$(TOOL) uv add $(PKG)
+
+be-%: env
+	$(RUN) python manage.py $*
 {%- if use_frontend %}
 
-fe-shell:
-	$(DC) exec vue sh
+fe-shell: env
+	$(DC) run --rm --no-deps vue sh
 
-fe-install:
-	$(DC) exec vue npm install $(PKG)
+fe-install: env
+	$(DC) run --rm --no-deps vue npm install $(PKG)
 
-fe-build:
-	$(DC) exec vue npm run build
+fe-build: env
+	$(DC) run --rm --no-deps vue npm run build
 {%- endif %}
