@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.1
       - run: >-
           uvx copier copy --trust --vcs-ref HEAD --defaults
           -d use_frontend=${{ matrix.frontend }} -d use_celery=${{ matrix.celery }}
@@ -45,7 +45,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.1
       - run: uvx copier copy --trust --vcs-ref HEAD --defaults ${{ matrix.options }} . "$OUT"
       - working-directory: ${{ env.OUT }}
         run: make build && make lint && make test && make e2e
